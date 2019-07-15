@@ -17,6 +17,7 @@ python-dotenv = "*"
 flask-cors = "*"
 mysqlclient = "*"
 gunicorn = "*"
+eralchemy = "*"
 
 [requires]
 python_version = "3.6"

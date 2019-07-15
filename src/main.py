@@ -58,9 +58,6 @@ def handle_person():
 
 @app.route('/todos/user/<username>', methods=['PUT', 'GET', 'DELETE', 'POST'])
 def get_single_person(username):
-    """
-    Single person
-    """
 
     # PUT request
     if request.method == 'PUT':
@@ -109,7 +106,6 @@ def get_single_person(username):
         return "ok", 200
 
     return "Invalid Method", 404
-
 
 if __name__ == '__main__':
     PORT = int(os.environ.get('PORT', 3000))
