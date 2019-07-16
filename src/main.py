@@ -68,6 +68,7 @@ def get_single_person(username):
         user1 = Person.query.filter_by(username=username)
         if user1 is None:
             raise APIException('User not found', status_code=404)
+
         user1.todo = body
 
         db.session.commit()
@@ -100,7 +101,8 @@ def get_single_person(username):
         user1 = Person.query.filter_by(username=username)
         if user1 is None:
             raise APIException('User not found', status_code=404)
-        user1.todo = body
+
+        user1.todo = []
         db.session.commit()
         return "ok", 200
 
