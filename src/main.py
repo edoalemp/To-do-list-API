@@ -65,43 +65,42 @@ def get_single_person(username):
         if body is None:
             raise APIException("You need to specify the request body as a json object", status_code=400)
 
-        user1 = Person.query.get(username)
+        user1 = Person.query.filter_by(username=username)
         if user1 is None:
             raise APIException('User not found', status_code=404)
+        user1.todo = body
 
-        if "username" in body:
-            user1.username = body["username"]
-        if "email" in body:
-            user1.email = body["email"]
         db.session.commit()
 
-        return jsonify(user1.serialize()), 200
+        return "ok", 200
 
     # GET request
     if request.method == 'GET':
-        user1 = Person.query.get(username)
+        user1 = Person.query.filter_by(username=username)
         if user1 is None:
             raise APIException('User not found', status_code=404)
-        return jsonify(user1.serialize()), 200
+        user1 = list(map(lambda x: x.todo, user1))
+        return jsonify(user1), 200
 
-    # DELETE request
+    # DELETE request  ****check****
     if request.method == 'DELETE':
-        user1 = Person.query.get(username)
+        user1 = Person.query.filter_by(username=username)
         if user1 is None:
             raise APIException('User not found', status_code=404)
-        db.session.delete(user1)
+        user1.delete()
         db.session.commit()
         return "ok", 200
 
-    # POST request
+    # POST request   ****check?****
     if request.method == 'POST':
         body = request.get_json()
 
         if body is None:
             raise APIException("You need to specify the request body as a json object", status_code=400)
-
-        task1 = Todos(label='', done='')
-        db.session.add(task1)
+        user1 = Person.query.filter_by(username=username)
+        if user1 is None:
+            raise APIException('User not found', status_code=404)
+        user1.todo = body
         db.session.commit()
         return "ok", 200
 
