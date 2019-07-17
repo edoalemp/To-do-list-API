@@ -14,7 +14,8 @@ class Person(db.Model):
     def serialize(self):
         return {
             "username": self.username,
-            "email": self.email
+            "email": self.email,
+            "todo": self.todo
         }
 
 class Todos(db.Model):
@@ -31,5 +32,5 @@ class Todos(db.Model):
     def serialize(self):
         return {
             "label": self.label,
-            "done": self.done
+            "done": self.done,
         }

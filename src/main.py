@@ -1,7 +1,7 @@
 """
 This module takes care of starting the API Server, Loading the DB and Adding the endpoints
 """
-import os
+import os, json
 from flask import Flask, request, jsonify, url_for
 from flask_migrate import Migrate
 from flask_swagger import swagger
@@ -64,24 +64,24 @@ def get_single_person(username):
         body = request.get_json()
         if body is None:
             raise APIException("You need to specify the request body as a json object", status_code=400)
-
         user1 = Person.query.filter_by(username=username)
         if user1 is None:
             raise APIException('User not found', status_code=404)
-
         user1.todo = body
-
         db.session.commit()
 
         return "ok", 200
 
-    # GET request
+    # GET request   ****check?***
     if request.method == 'GET':
         user1 = Person.query.filter_by(username=username)
         if user1 is None:
             raise APIException('User not found', status_code=404)
-        user1 = list(map(lambda x: x.todo, user1))
-        return jsonify(user1), 200
+
+        todo = Todos.query.filter_by(id_user=user1.id)
+        #user1 = user1.todo
+        #user1 = list(map(lambda x: x.todo, user1))
+        return jsonify(todo), 200
 
     # DELETE request  ****check****
     if request.method == 'DELETE':
@@ -95,7 +95,6 @@ def get_single_person(username):
     # POST request   ****check?****
     if request.method == 'POST':
         body = request.get_json()
-
         if body is None:
             raise APIException("You need to specify the request body as a json object", status_code=400)
         user1 = Person.query.filter_by(username=username)
