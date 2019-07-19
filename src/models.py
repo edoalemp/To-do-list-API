@@ -4,30 +4,27 @@ db = SQLAlchemy()
 
 class Person(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(80), unique=True, nullable=False)
-    email = db.Column(db.String(120), unique=True, nullable=False)
-    todo = db.relationship('Todos')
+    username = db.Column(db.String(50), nullable=False)
+    email = db.Column(db.String(255), nullable=False)
+    todos = db.relationship('Todo', backref='person', lazy=True)
 
     def __repr__(self):
-        return '<Person %r>' % self.username
+            return '<Person %r>' % self.username
 
     def serialize(self):
         return {
             "username": self.username,
-            "email": self.email,
-            "todo": self.todo
+            "email": self.email
         }
 
-class Todos(db.Model):
-
+class Todo(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    label = db.Column(db.String(80), unique=True, nullable=False)
-    done = db.Column(db.String(5), unique=True, nullable=False)
-    id_user = db.Column(db.Integer, db.ForeignKey('person.id'), nullable=False)
-
+    label = db.Column(db.String(80), nullable=True)
+    done = db.Column(db.String(5), nullable=True)
+    person_id = db.Column(db.Integer, db.ForeignKey('person.id'),nullable=False)
 
     def __repr__(self):
-        return '<Todos %r>' % self.label
+            return '<Todos %r>' % self.label
 
     def serialize(self):
         return {

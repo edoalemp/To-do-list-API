@@ -7,7 +7,7 @@ from flask_migrate import Migrate
 from flask_swagger import swagger
 from flask_cors import CORS
 from utils import APIException, generate_sitemap
-from models import db, Person, Todos
+from models import db, Person, Todo
 
 app = Flask(__name__)
 app.url_map.strict_slashes = False
@@ -25,87 +25,71 @@ def handle_invalid_usage(error):
 def sitemap():
     return generate_sitemap(app)
 
-@app.route('/todos/user', methods=['POST', 'GET'])
-def handle_person():
-    """
-    Create person and retrieve all persons
-    """
+@app.route('/users', methods=['GET','POST'])
+def manage_users():
 
-    # POST request
+    if request.method == 'GET':
+        people = Person.query.all()
+        people = list(map(lambda x: x.serialize(), people))
+        return jsonify(people), 200
+
     if request.method == 'POST':
         body = request.get_json()
-
         if body is None:
             raise APIException("You need to specify the request body as a json object", status_code=400)
         if 'username' not in body:
             raise APIException('You need to specify the username', status_code=400)
         if 'email' not in body:
             raise APIException('You need to specify the email', status_code=400)
-
-        user1 = Person(username=body['username'], email=body['email'])
-        db.session.add(user1)
+        person = Person(username=body['username'], email=body['email'])
+        db.session.add(person)
         db.session.commit()
         return "ok", 200
 
-    # GET request
-    if request.method == 'GET':
-        all_people = Person.query.all()
-        all_people = list(map(lambda x: x.serialize(), all_people))
-        return jsonify(all_people), 200
-
-    return "Invalid Method", 404
-
-
 @app.route('/todos/user/<username>', methods=['PUT', 'GET', 'DELETE', 'POST'])
-def get_single_person(username):
+def get_person_todos(username):
 
-    # PUT request
     if request.method == 'PUT':
         body = request.get_json()
         if body is None:
             raise APIException("You need to specify the request body as a json object", status_code=400)
-        user1 = Person.query.filter_by(username=username)
-        if user1 is None:
-            raise APIException('User not found', status_code=404)
-        user1.todo = body
-        db.session.commit()
 
+        person = Person.query.filter_by(username=username).first()
+        if person is None:
+            raise APIException('User not found', status_code=404)
+        new_todos = []
+        for todo_data in body:
+            new_todos.append(Todo(label=todo_data["label"],done=todo_data["done"],person_id = person.id))
+        person.todos = new_todos
+        db.session.commit()
         return "ok", 200
 
-    # GET request   ****check?***
     if request.method == 'GET':
-        user1 = Person.query.filter_by(username=username)
-        if user1 is None:
+        person = Person.query.filter_by(username=username).first()
+        if person is None:
             raise APIException('User not found', status_code=404)
+        todos = person.todos
+        todos = list(map(lambda x: x.serialize(), todos))
+        return jsonify(todos), 200
 
-        todo = Todos.query.filter_by(id_user=user1.id)
-        #user1 = user1.todo
-        #user1 = list(map(lambda x: x.todo, user1))
-        return jsonify(todo), 200
-
-    # DELETE request  ****check****
-    if request.method == 'DELETE':
-        user1 = Person.query.filter_by(username=username)
-        if user1 is None:
-            raise APIException('User not found', status_code=404)
-        user1.delete()
-        db.session.commit()
-        return "ok", 200
-
-    # POST request   ****check?****
     if request.method == 'POST':
         body = request.get_json()
         if body is None:
             raise APIException("You need to specify the request body as a json object", status_code=400)
-        user1 = Person.query.filter_by(username=username)
-        if user1 is None:
+        person = Person.query.filter_by(username=username).first()
+        if person is None:
             raise APIException('User not found', status_code=404)
-
-        user1.todo = []
+        person.todos = body
         db.session.commit()
         return "ok", 200
 
-    return "Invalid Method", 404
+    if request.method == 'DELETE':
+        person = Person.query.filter_by(username=username).first()
+        if person is None:
+            raise APIException('User not found', status_code=404)
+        db.session.delete(person)
+        db.session.commit()
+        return "ok", 200
 
 if __name__ == '__main__':
     PORT = int(os.environ.get('PORT', 3000))
